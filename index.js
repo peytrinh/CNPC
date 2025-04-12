@@ -18,7 +18,7 @@ app.get("/group-members/:groupId", async (req, res) => {
     let done = false;
 
     while (!done) {
-      const url = `https://groups.roblox.com/v1/groups/${groupId}/users?limit=100&sortOrder=Asc${nextPageCursor ? `&cursor=${nextPageCursor}` : ""}`;
+      const url = `https://groups.roblox.com/v1/groups/3745971/users?limit=100&sortOrder=Asc${nextPageCursor ? `&cursor=${nextPageCursor}` : ""}`;
       const response = await axios.get(url);
       const data = response.data;
 
