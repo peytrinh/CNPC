@@ -1,21 +1,42 @@
-// index.js
-const express = require('express');
-const axios = require('axios');
+const express = require("express");
+const axios = require("axios");
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.get('/group-members/:groupId', async (req, res) => {
+// Allow requests from your Roblox game (CORS)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
+
+app.get("/group-members/:groupId", async (req, res) => {
   const groupId = req.params.groupId;
+  let members = [];
+
   try {
-    const response = await axios.get(`https://groups.roblox.com/v1/groups/${groupId}/users?limit=50`);
-    const users = response.data.data.map(user => ({
-      username: user.user.username,
-      userId: user.user.userId
-    }));
-    res.json(users);
+    let nextPageCursor = null;
+    let done = false;
+
+    while (!done) {
+      const url = `https://groups.roblox.com/v1/groups/${groupId}/users?limit=100&sortOrder=Asc${nextPageCursor ? `&cursor=${nextPageCursor}` : ""}`;
+      const response = await axios.get(url);
+      const data = response.data;
+
+      members = members.concat(data.data);
+
+      nextPageCursor = data.nextPageCursor;
+      if (!nextPageCursor) {
+        done = true;
+      }
+    }
+
+    res.json(members);
   } catch (error) {
-    res.status(500).send("Failed to fetch group members");
+    console.error(error.message);
+    res.status(500).send("Failed to fetch group members.");
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Proxy server running on port ${PORT}`);
+});
